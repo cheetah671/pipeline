@@ -1,0 +1,13 @@
+pandas>=2.2
+numpy>=1.26
+duckdb>=1.0
+pyarrow>=17.0
+scikit-learn>=1.5
+joblib>=1.4
+fastapi>=0.112
+uvicorn[standard]>=0.30
+pydantic>=2.8
+kafka-python>=2.0
+prefect>=3.0
+dask[complete]>=2024.7.0
+pybind11>=2.13
