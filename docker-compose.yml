@@ -1,0 +1,57 @@
+services:
+  redpanda:
+    image: redpandadata/redpanda:v24.1.6
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp
+      - "1"
+      - --memory
+      - 1G
+      - --reserve-memory
+      - 0M
+      - --node-id
+      - "0"
+      - --check=false
+      - --kafka-addr
+      - PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr
+      - PLAINTEXT://redpanda:9092
+    ports:
+      - "9092:9092"
+
+  api:
+    build: .
+    depends_on:
+      - redpanda
+    environment:
+      - PYTHONPATH=/app/src
+    volumes:
+      - ./:/app
+    command: >
+      python -m market_pipeline serve --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+
+  replayer:
+    build: .
+    depends_on:
+      - redpanda
+    environment:
+      - PYTHONPATH=/app/src
+    volumes:
+      - ./:/app
+    command: >
+      python -m market_pipeline stream --sink kafka --topic trades --events 10000 --rate 1000 --bootstrap-servers redpanda:9092
+
+  consumer:
+    build: .
+    depends_on:
+      - redpanda
+    environment:
+      - PYTHONPATH=/app/src
+    volumes:
+      - ./:/app
+    command: >
+      python -m market_pipeline consume --source kafka --topic trades --bootstrap-servers redpanda:9092
